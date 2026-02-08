@@ -6,12 +6,27 @@ There are 3 types of effects:
 """
 from abc import ABC, abstractmethod
 
+import numpy
+import numpy as np
+
 from .track import Track
 
 
 class Effect(ABC):
     def __init__(self):
-        self.settings = {}
+        self._settings = {}
+
+
+    @staticmethod
+    def equalise_track_length(tracks: list[Track]):
+        longest = max([i.num_samples for i in tracks])
+        edited_tracks = []
+        for track in tracks:
+            if track.num_samples == longest:
+                continue
+            zero_array = numpy.zeros(track.num_samples - longest, 2)
+            track.samples = np.append(track.samples, zero_array)
+        return tracks
 
     @abstractmethod
     def execute(self, track: Track) -> Track:

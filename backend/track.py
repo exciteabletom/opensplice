@@ -3,19 +3,22 @@ from os import PathLike
 import librosa
 import numpy as np
 import soundfile as sf
+from numba.np.arrayobj import np_array
 from pydub import AudioSegment
 
 
 class Track:
-    def __init__(self, audio: PathLike | str | AudioSegment, sample_rate: int = 44100):
+    def __init__(self, audio: PathLike | str | AudioSegment | np.ndarray, sample_rate: int = 44100):
         self.sample_rate = sample_rate
 
         if isinstance(audio, AudioSegment):
             # Sets self.samples and self.samplerate
             self.save_from_pydub_segment(audio)
 
-        elif isinstance(audio, (str, PathLike)):
+        elif isinstance(audio, (str)):
             self.load_from_librosa(audio)
+        elif isinstance(audio, np.ndarray):
+            self.samples = audio
         else:
             raise TypeError("'audio' parameter must be a file path or an AudioSegment instance.")
 
@@ -77,9 +80,10 @@ class Track:
     def int16_to_float32(int16_audio: np.array):
         return int16_audio.astype(np.float32) / 32767.0
 
-    def load_from_librosa(self, audio_path: str):
-        """Load audio from a file using librosa and fix the shape."""
-        self.samples, self.sample_rate = librosa.load(audio_path, dtype="float32", mono=False, sr=self.sample_rate)
+    def load_from_librosa(self, audio: str | np.ndarray):
+        """Load audio from a file using librosa"""
+        # TODO: Probably redundant to use both calls
+        self.samples, self.sample_rate = librosa.load(audio, dtype="float32", mono=False, sr=self.sample_rate)
 
     def save_from_pydub_segment(self, segment: AudioSegment):
         raw_audio = segment.raw_data
@@ -96,18 +100,28 @@ class Track:
         if segment.frame_rate != self.sample_rate:
             self.resample()
 
-        return self
+    def get_chunks(self, sample_size: int, flatten=False):
+        remainder = len(self.samples) % sample_size
+        arr = self.samples
+        if remainder != 0:
+            arr = self.samples[:-remainder]
+
+        split_arr = np.split(arr, int(len(arr) / sample_size))
+        if flatten:
+            for i, c in enumerate(split_arr):
+                split_arr[i] = c.flatten()
+
+        return split_arr
 
     def resample(self, target_rate: int = None):
         if self.sample_rate == target_rate:
-            return self
+            return
 
         if not target_rate:
             target_rate = self.sample_rate
 
         self.samples = librosa.resample(self.samples, orig_sr=self.sample_rate, target_sr=target_rate, axis=0).T
         self.sample_rate = target_rate
-        return self
 
     def export(self, file_path):
         sf.write(file_path, self.samples, samplerate=self.sample_rate)
