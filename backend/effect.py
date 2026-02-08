@@ -1,36 +1,22 @@
-from enum import Enum
+"""
+There are 3 types of effects:
+    SingleEffect - Applies an effect to one track and returns one track.
+    MultiEffect - Applies an effect to multiple tracks and returns multiple tracks.
+    SpliceEffect - Applies an effect to multiple tracks and returns one track.
+"""
 from abc import ABC, abstractmethod
 
-from backend.globals import audio_type
-
-
-class EffectMode(Enum):
-    """
-    Indicates how many tracks an effect expects and returns.
-    SINGLE: Inputs a single track, outputs a single track.
-    MULTI: Inputs multiple tracks, outputs multiple tracks.
-    COMBINE: Inputs multiple tracks, outputs a single track.
-    """
-    SINGLE = 1
-    MULTI = 2
-    COMBINE = 3
-
-    def expects_multiple_inputs(self):
-        return self.value is not self.SINGLE
+from .track import Track
 
 
 class Effect(ABC):
-    def __init__(self, effect_type: EffectMode, audio: audio_type):
-        self.expects_multiple = effect_type.expects_multiple_inputs()
-        self.type = type
-        self.audio = audio
-        return
+    def __init__(self):
+        self.settings = {}
 
     @abstractmethod
-    def go(self) -> audio_type:
+    def execute(self, track: Track) -> Track:
         """
-        Define your main
-        :return:
+        Do stuff.
         """
         pass
 
@@ -43,5 +29,5 @@ class MultiEffect(Effect, ABC):
     pass
 
 
-class CombineEffect(Effect, ABC):
+class SpliceEffect(MultiEffect, ABC):
     pass

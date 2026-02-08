@@ -1,0 +1,6 @@
+audioop-lts; python_version>='3.13'
+pydub~=0.25.1
+numpy
+soundfile
+ffmpeg-python
+librosa
