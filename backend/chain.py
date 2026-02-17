@@ -20,6 +20,7 @@ SpliceChain:
             Track  /
             Track /
 """
+
 from abc import ABC, abstractmethod
 from uuid import uuid4
 
@@ -53,25 +54,31 @@ class Chain(ABC):
 
     @abstractmethod
     def append_to_chain(self, parent, child):
-        """ Add to the chain """
+        """Add to the chain"""
         if self.chain.get([parent]):
             if child in self.chain[parent]:
                 self.chain[parent].append(child)
         else:  # If the effect is new add it to the dict with a track if the track is not None
-            self.chain[parent] = [c for c in [child] if c is not None]  # This is stupid but I love it
+            self.chain[parent] = [
+                c for c in [child] if c is not None
+            ]  # This is stupid but I love it
 
     @abstractmethod
     def change_child_order(self, parent, child, index: int):
-        """ Move an effect to a different position in the chain. """
+        """Move an effect to a different position in the chain."""
         if index < 0 or index > len(self.chain[parent]):
-            raise ValueError(f"Index -> {index} <-, cannot be greater than chain length or < 0.")
+            raise ValueError(
+                f"Index -> {index} <-, cannot be greater than chain length or < 0."
+            )
 
         try:
             self.chain[parent].index(child)
         except KeyError:
             raise ValueError(f"Parent ->{parent}<- does not exist in this chain.")
         except ValueError:
-            raise ValueError(f"Child ->{child}<- is not attached to parent ->{parent}<- in this chain.")
+            raise ValueError(
+                f"Child ->{child}<- is not attached to parent ->{parent}<- in this chain."
+            )
 
         self.chain[parent].remove(child)
         self.chain[parent].insert(index, child)
@@ -125,6 +132,7 @@ class MultiChain(Chain):
     """
     Chain for MultiEffect classes, every effect is tied to multiple tracks.
     """
+
     effect_type = MultiEffect
 
     def __init__(self, name: str):
@@ -157,6 +165,7 @@ class MultiChain(Chain):
 
 class SpliceEffectChain(MultiChain):
     """"""
+
     effect_type = SpliceEffect
 
     def __init__(self, name: str):

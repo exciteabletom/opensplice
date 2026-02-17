@@ -4,6 +4,7 @@ There are 3 types of effects:
     MultiEffect - Applies an effect to multiple tracks and returns multiple tracks.
     SpliceEffect - Applies an effect to multiple tracks and returns one track.
 """
+
 from abc import ABC, abstractmethod
 
 import numpy
@@ -15,7 +16,6 @@ from .track import Track
 class Effect(ABC):
     def __init__(self):
         self._settings = {}
-
 
     @staticmethod
     def equalise_track_length(tracks: list[Track]):

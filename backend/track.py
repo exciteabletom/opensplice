@@ -8,7 +8,11 @@ from pydub import AudioSegment
 
 
 class Track:
-    def __init__(self, audio: PathLike | str | AudioSegment | np.ndarray, sample_rate: int = 44100):
+    def __init__(
+        self,
+        audio: PathLike | str | AudioSegment | np.ndarray,
+        sample_rate: int = 44100,
+    ):
         self.sample_rate = sample_rate
 
         if isinstance(audio, AudioSegment):
@@ -20,7 +24,9 @@ class Track:
         elif isinstance(audio, np.ndarray):
             self.samples = audio
         else:
-            raise TypeError("'audio' parameter must be a file path or an AudioSegment instance.")
+            raise TypeError(
+                "'audio' parameter must be a file path or an AudioSegment instance."
+            )
 
         # Convert mono to stereo
         if self.samples.ndim == 1:
@@ -73,7 +79,7 @@ class Track:
             self.int16.tobytes(),
             frame_rate=self.sample_rate,
             sample_width=2,
-            channels=2
+            channels=2,
         )
 
     @staticmethod
@@ -83,7 +89,9 @@ class Track:
     def load_from_librosa(self, audio: str | np.ndarray):
         """Load audio from a file using librosa"""
         # TODO: Probably redundant to use both calls
-        self.samples, self.sample_rate = librosa.load(audio, dtype="float32", mono=False, sr=self.sample_rate)
+        self.samples, self.sample_rate = librosa.load(
+            audio, dtype="float32", mono=False, sr=self.sample_rate
+        )
 
     def save_from_pydub_segment(self, segment: AudioSegment):
         raw_audio = segment.raw_data
@@ -113,6 +121,14 @@ class Track:
 
         return split_arr
 
+    def get_fft(self):
+        return librosa.fft_frequencies(
+            self.sample_rate,
+        )
+
+    def get_fft_chunks(self):
+        pass
+
     def resample(self, target_rate: int = None):
         if self.sample_rate == target_rate:
             return
@@ -120,7 +136,9 @@ class Track:
         if not target_rate:
             target_rate = self.sample_rate
 
-        self.samples = librosa.resample(self.samples, orig_sr=self.sample_rate, target_sr=target_rate, axis=0).T
+        self.samples = librosa.resample(
+            self.samples, orig_sr=self.sample_rate, target_sr=target_rate, axis=0
+        ).T
         self.sample_rate = target_rate
 
     def export(self, file_path):
